@@ -1,9 +1,14 @@
-import BottomSheet, { BottomSheetBackdrop } from "@gorhom/bottom-sheet";
+import BottomSheet, {
+  BottomSheetBackdrop,
+  BottomSheetTextInput,
+} from "@gorhom/bottom-sheet";
 import { useFocusEffect } from "@react-navigation/native";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { StyleSheet, View, Text, FlatList } from "react-native";
-import { GestureHandlerRootView } from "react-native-gesture-handler";
-import { client } from "../../(database)/pocketbase";
+import { StyleSheet, View, Text, FlatList, Keyboard } from "react-native";
+import {
+  GestureHandlerRootView,
+  RefreshControl,
+} from "react-native-gesture-handler";
 import {
   Button,
   Text as PaperText,
@@ -13,16 +18,39 @@ import {
 } from "react-native-paper";
 import ExpenditureCard from "@/components/ExpenditureCard";
 import { Expenditure } from "@/(utility)/expenditure.interface";
+import DismissKeyboard from "@/components/DismissKeyboard";
+import { createNewRecord, fetchRecords } from "@/(utility)/databaseCalls";
 
 export default function TabOneScreen() {
-  const snapPoints = useMemo(() => ["25%", "60%", "95%"], []);
-  const [expenditures, setExpenditures] = useState<Expenditure[]>([]);
-  const [loadingPage, setLoadingPage] = useState<boolean>(false);
+  const snapPoints = useMemo(() => ["25%", "70%", "95%"], []);
   const bottomSheetRef = useRef<BottomSheet>(null);
 
-  const handleClosePress = () => bottomSheetRef.current?.close();
-  const snapeToIndex = (index: number) =>
+  const [nameInput, setNameInput] = useState<string>("");
+  const nameInputRef = useRef<any>(null);
+  const [amountInput, setAmountInput] = useState<string>("");
+  const amountInputRef = useRef<any>(null);
+  const [commentInput, setCommentInput] = useState<string | null>(null);
+  const commentInputRef = useRef<any>(null);
+
+  const [expenditures, setExpenditures] = useState<Expenditure[]>([]);
+  const [loadingPage, setLoadingPage] = useState<boolean>(false);
+  const [refreshing, setRefreshing] = useState<boolean>(false);
+  const [creatingNewRecord, setCreatingNewRecord] = useState<boolean>(false);
+
+  const handleClosePress = () => {
+    Keyboard.dismiss();
+    bottomSheetRef.current?.close();
+  };
+  const snapeToIndex = (index: number) => {
+    setNameInput("");
+    setAmountInput("");
+    setCommentInput("");
+    nameInputRef.current?.clear();
+    amountInputRef.current?.clear();
+    commentInputRef.current?.clear();
+
     bottomSheetRef.current?.snapToIndex(index);
+  };
   const renderBackdrop = useCallback(
     (props: any) => (
       <BottomSheetBackdrop
@@ -34,25 +62,44 @@ export default function TabOneScreen() {
     []
   );
 
+  const saveForm = () => {
+    console.log(nameInput, amountInput, commentInput);
+    setCreatingNewRecord(true);
+
+    createNewRecord(nameInput, amountInput, commentInput || "")
+      .then((newlyCreatedRecord) => {
+        setExpenditures((prev) => [
+          newlyCreatedRecord as unknown as Expenditure,
+          ...prev,
+        ]);
+        setCreatingNewRecord(false);
+        handleClosePress();
+      })
+      .catch((err) => {
+        console.log(err);
+        setCreatingNewRecord(false);
+      })
+      .finally(() => Keyboard.dismiss());
+  };
+
+  const refreshHandler = () => {
+    console.log("refresh");
+    setRefreshing(true);
+    fetchRecords()
+      .then((res) => {
+        setExpenditures(res as unknown as Expenditure[]);
+        setRefreshing(false);
+      })
+      .catch((err) => {
+        console.log(err);
+        setRefreshing(false);
+      });
+    // setTimeout(() => setRefreshing(false), 1000);
+  };
+
   useEffect(() => {
     console.log("useEffect");
     setLoadingPage(true);
-    // const fetchRe = async () => {
-    //   const data = await fetch(
-    //     "https://react-native-todo-m.pockethost.io/api/collections/todos/records"
-    //   );
-    //   const jsoned = await data.json();
-    //   console.log(jsoned);
-    //   return jsoned;
-    // };
-    // fetchRe()
-    //   .then((res) => console.log(res))
-    //   .catch((err) => console.log(err));
-    const fetchRecords = async () => {
-      return await client
-        .collection("expenditures")
-        .getFullList({ sort: "-created" });
-    };
     fetchRecords()
       .then((res) => {
         console.log(res);
@@ -68,7 +115,7 @@ export default function TabOneScreen() {
   useFocusEffect(
     useCallback(() => {
       return () => {
-        bottomSheetRef.current?.close();
+        handleClosePress();
       };
     }, [])
   );
@@ -88,6 +135,12 @@ export default function TabOneScreen() {
               data={expenditures}
               keyExtractor={(item) => item.id}
               renderItem={({ item }) => <ExpenditureCard item={item} />}
+              refreshControl={
+                <RefreshControl
+                  refreshing={refreshing}
+                  onRefresh={refreshHandler}
+                />
+              }
             />
             <View>
               <View style={styles.newExpenditure}>
@@ -105,11 +158,52 @@ export default function TabOneScreen() {
               backdropComponent={renderBackdrop}
             >
               <View style={styles.contentContainer}>
-                <Text style={styles.containerHeadline}>
-                  Awesome Bottom Sheet 🎉
-                </Text>
-                <Button mode="contained" onPress={handleClosePress}>
-                  Close
+                <DismissKeyboard>
+                  <Text style={styles.containerHeadline}>
+                    New Expenditure 🎉
+                  </Text>
+                  <View>
+                    <Text>Name</Text>
+                    <BottomSheetTextInput
+                      style={styles.input}
+                      maxLength={20}
+                      autoCapitalize="sentences"
+                      onChangeText={setNameInput}
+                      ref={nameInputRef}
+                      value={nameInput}
+                    />
+                  </View>
+                  <View>
+                    <Text>Amount</Text>
+                    <BottomSheetTextInput
+                      style={styles.amountInput}
+                      keyboardType="numeric"
+                      onChangeText={setAmountInput}
+                      value={amountInput}
+                      ref={amountInputRef}
+                    />
+                  </View>
+                  <View>
+                    <Text>Comment</Text>
+                    <BottomSheetTextInput
+                      style={[styles.input, styles.commentInput]}
+                      multiline
+                      editable
+                      numberOfLines={4}
+                      onChangeText={setCommentInput}
+                      value={commentInput || ""}
+                      ref={commentInputRef}
+                    />
+                  </View>
+                </DismissKeyboard>
+                <Button
+                  mode="contained"
+                  onPress={saveForm}
+                  style={{ marginTop: 20 }}
+                  loading={creatingNewRecord}
+                  disabled={creatingNewRecord}
+                >
+                  Create
                 </Button>
               </View>
             </BottomSheet>
@@ -132,12 +226,37 @@ const styles = StyleSheet.create({
   newExpenditure: { width: 300, marginTop: 10 },
 
   contentContainer: {
-    flex: 1,
-    alignItems: "center",
+    alignItems: "flex-start",
+    justifyContent: "flex-start",
+    paddingHorizontal: 40,
   },
   containerHeadline: {
     fontSize: 24,
     fontWeight: "600",
     padding: 20,
+  },
+  input: {
+    minWidth: 300,
+    marginTop: 8,
+    marginBottom: 10,
+    borderRadius: 10,
+    fontSize: 16,
+    lineHeight: 20,
+    padding: 8,
+    backgroundColor: "rgba(151, 151, 151, 0.25)",
+  },
+
+  amountInput: {
+    height: 50,
+    width: 150,
+    backgroundColor: "rgba(151, 151, 151, 0.25)",
+    padding: 8,
+    borderRadius: 10,
+    fontSize: 18,
+    marginBottom: 10,
+  },
+
+  commentInput: {
+    minHeight: 80,
   },
 });
