@@ -4,7 +4,7 @@ import BottomSheet, {
 } from "@gorhom/bottom-sheet";
 import { useFocusEffect } from "@react-navigation/native";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { StyleSheet, View, Text, FlatList, Keyboard } from "react-native";
+import { View, Text, FlatList, Keyboard } from "react-native";
 import {
   GestureHandlerRootView,
   RefreshControl,
@@ -15,11 +15,14 @@ import {
   ActivityIndicator,
   MD2Colors,
   Icon,
+  Portal,
+  Modal,
 } from "react-native-paper";
 import ExpenditureCard from "@/components/ExpenditureCard";
 import { Expenditure } from "@/(utility)/expenditure.interface";
 import DismissKeyboard from "@/components/DismissKeyboard";
 import { createNewRecord, fetchRecords } from "@/(utility)/databaseCalls";
+import { indexStyles as styles } from "./index.styles";
 
 export default function TabOneScreen() {
   const snapPoints = useMemo(() => ["25%", "70%", "95%"], []);
@@ -37,11 +40,34 @@ export default function TabOneScreen() {
   const [refreshing, setRefreshing] = useState<boolean>(false);
   const [creatingNewRecord, setCreatingNewRecord] = useState<boolean>(false);
 
+  useEffect(() => {
+    setLoadingPage(true);
+    fetchRecords()
+      .then((res) => {
+        console.log(res);
+        setExpenditures(res as unknown as Expenditure[]);
+        setLoadingPage(false);
+      })
+      .catch((err) => {
+        console.log(err);
+        setLoadingPage(false);
+      });
+  }, []);
+
+  useFocusEffect(
+    useCallback(() => {
+      return () => {
+        handleClosePress();
+      };
+    }, [])
+  );
+
   const handleClosePress = () => {
     Keyboard.dismiss();
     bottomSheetRef.current?.close();
   };
-  const snapeToIndex = (index: number) => {
+
+  const snapToIndex = (index: number) => {
     setNameInput("");
     setAmountInput("");
     setCommentInput("");
@@ -82,6 +108,12 @@ export default function TabOneScreen() {
       .finally(() => Keyboard.dismiss());
   };
 
+  const onRemoveRecord = (id: string) => {
+    const currentList = [...expenditures];
+    const filteredList = currentList.filter((item) => item.id !== id);
+    setExpenditures(filteredList);
+  };
+
   const refreshHandler = () => {
     console.log("refresh");
     setRefreshing(true);
@@ -95,29 +127,6 @@ export default function TabOneScreen() {
         setRefreshing(false);
       });
   };
-
-  useEffect(() => {
-    console.log("useEffect");
-    setLoadingPage(true);
-    fetchRecords()
-      .then((res) => {
-        console.log(res);
-        setExpenditures(res as unknown as Expenditure[]);
-        setLoadingPage(false);
-      })
-      .catch((err) => {
-        console.log(err);
-        setLoadingPage(false);
-      });
-  }, []);
-
-  useFocusEffect(
-    useCallback(() => {
-      return () => {
-        handleClosePress();
-      };
-    }, [])
-  );
 
   return (
     <GestureHandlerRootView>
@@ -133,7 +142,9 @@ export default function TabOneScreen() {
             <FlatList
               data={expenditures}
               keyExtractor={(item) => item.id}
-              renderItem={({ item }) => <ExpenditureCard item={item} />}
+              renderItem={({ item }) => (
+                <ExpenditureCard item={item} removeRecord={onRemoveRecord} />
+              )}
               refreshControl={
                 <RefreshControl
                   refreshing={refreshing}
@@ -143,7 +154,7 @@ export default function TabOneScreen() {
             />
             <View>
               <View style={styles.newExpenditure}>
-                <Button mode="contained" onPress={() => snapeToIndex(1)}>
+                <Button mode="contained" onPress={() => snapToIndex(2)}>
                   <Icon source="plus" color={MD2Colors.white} size={20} />
                 </Button>
               </View>
@@ -212,50 +223,3 @@ export default function TabOneScreen() {
     </GestureHandlerRootView>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    paddingTop: 20,
-    paddingBottom: 20,
-    flex: 1,
-    alignItems: "center",
-    justifyContent: "center",
-    height: "100%",
-  },
-  newExpenditure: { width: 300, marginTop: 10 },
-
-  contentContainer: {
-    alignItems: "flex-start",
-    justifyContent: "flex-start",
-    paddingHorizontal: 40,
-  },
-  containerHeadline: {
-    fontSize: 24,
-    fontWeight: "600",
-    padding: 20,
-  },
-  input: {
-    minWidth: 300,
-    marginTop: 8,
-    marginBottom: 10,
-    borderRadius: 10,
-    fontSize: 16,
-    lineHeight: 20,
-    padding: 8,
-    backgroundColor: "rgba(151, 151, 151, 0.25)",
-  },
-
-  amountInput: {
-    height: 50,
-    width: 150,
-    backgroundColor: "rgba(151, 151, 151, 0.25)",
-    padding: 8,
-    borderRadius: 10,
-    fontSize: 18,
-    marginBottom: 10,
-  },
-
-  commentInput: {
-    minHeight: 80,
-  },
-});

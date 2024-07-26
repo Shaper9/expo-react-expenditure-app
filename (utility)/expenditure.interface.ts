@@ -4,4 +4,5 @@ export interface Expenditure {
   amount: number;
   created: string;
   udpated: string;
+  comment: string;
 }

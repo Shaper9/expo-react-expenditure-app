@@ -12,6 +12,10 @@ export const createNewRecord = async (
   });
 };
 
+export const deleteRecord = async (id: string) => {
+  return await client.collection("expenditures").delete(id);
+};
+
 export const fetchRecords = async () => {
   return await client
     .collection("expenditures")
