@@ -94,7 +94,6 @@ export default function TabOneScreen() {
         console.log(err);
         setRefreshing(false);
       });
-    // setTimeout(() => setRefreshing(false), 1000);
   };
 
   useEffect(() => {
