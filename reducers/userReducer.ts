@@ -1,31 +1,27 @@
-import { LOGIN , CHANGE_NAME ,LOGOUT, GET_USER_BOOKS } from "./types"
+import { createSlice } from '@reduxjs/toolkit'
+import type { PayloadAction } from '@reduxjs/toolkit'
 
-const initialState = {
-    isSignedIn: false,
-    userName: "Super Man",
-    userBooks: []
+interface CounterState {
+  value: number
 }
 
-type ActionType = {
-    type: string,
-    payload: any,
-}
+const initialState = { value: 0 } satisfies CounterState as CounterState
 
-export default (state = initialState, {type, payload} : ActionType ) => {
+const counterSlice = createSlice({
+  name: 'counter',
+  initialState,
+  reducers: {
+    increment(state) {
+      state.value++
+    },
+    decrement(state) {
+      state.value--
+    },
+    incrementByAmount(state, action: PayloadAction<number>) {
+      state.value += action.payload
+    },
+  },
+})
 
-    switch (type) {
-        case LOGIN:
-            return {...state, isSignedIn: payload}
-        
-        case LOGOUT:
-            return {...state,  isSignedIn: payload}    
-
-        case CHANGE_NAME:
-            return {...state , userName: payload}
-
-        case GET_USER_BOOKS:
-            return {...state, userBooks: payload}    
-    }
-    
-    return state
-}
+export const { increment, decrement, incrementByAmount } = counterSlice.actions
+export default counterSlice.reducer
