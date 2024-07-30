@@ -5,9 +5,10 @@ import { Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { useEffect } from 'react';
 import 'react-native-reanimated';
-import {  store } from '../(database)/configureStore';
+import {  persistor, store } from '../(database)/configureStore';
 import { useColorScheme } from '@/components/useColorScheme';
 import { Provider } from 'react-redux';
+import { PersistGate } from 'redux-persist/integration/react';
 
 export {
   // Catch any errors thrown by the Layout component.
@@ -51,12 +52,14 @@ function RootLayoutNav() {
 
   return (
     <Provider store={store}>
+    <PersistGate loading={null} persistor={persistor}>
     <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
       <Stack>
         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
         <Stack.Screen name="modal" options={{ presentation: 'modal' }} />
       </Stack>
     </ThemeProvider>
+    </PersistGate>
     </Provider>
   );
 }
