@@ -15,10 +15,6 @@ import {
   ActivityIndicator,
   MD2Colors,
   Icon,
-  Portal,
-  Modal,
-  ProgressBar,
-  MD3Colors,
 } from "react-native-paper";
 import ExpenditureCard from "@/components/ExpenditureCard";
 import { Expenditure } from "@/(utility)/expenditure.interface";

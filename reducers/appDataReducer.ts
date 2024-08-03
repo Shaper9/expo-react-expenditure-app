@@ -4,11 +4,13 @@ import type { PayloadAction } from "@reduxjs/toolkit";
 export interface AppDataState {
   value: number;
   totalAmountSpent: number;
+  monthlyIncome: number;
 }
 
 const initialState = {
   value: 0,
   totalAmountSpent: 0,
+  monthlyIncome: 0,
 } satisfies AppDataState as AppDataState;
 
 const appDataSlice = createSlice({
@@ -17,6 +19,9 @@ const appDataSlice = createSlice({
   reducers: {
     setTotalAmountSpent(state, action: PayloadAction<number>) {
       state.totalAmountSpent = action.payload;
+    },
+    setMonthlyIncome(state, action: PayloadAction<number>) {
+      state.monthlyIncome = action.payload;
     },
     increment(state) {
       state.value++;
@@ -30,6 +35,11 @@ const appDataSlice = createSlice({
   },
 });
 
-export const { increment, decrement, incrementByAmount, setTotalAmountSpent } =
-  appDataSlice.actions;
+export const {
+  increment,
+  decrement,
+  incrementByAmount,
+  setTotalAmountSpent,
+  setMonthlyIncome,
+} = appDataSlice.actions;
 export default appDataSlice.reducer;
