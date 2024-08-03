@@ -9,7 +9,7 @@ export const indexStyles = StyleSheet.create({
     justifyContent: "center",
     height: "100%",
   },
-  newExpenditure: { width: 300, marginTop: 10 },
+  newExpenditure: { width: 300, marginTop: 10, flexDirection: "row" },
 
   contentContainer: {
     alignItems: "flex-start",

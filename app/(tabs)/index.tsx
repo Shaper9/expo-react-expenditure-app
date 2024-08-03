@@ -17,14 +17,20 @@ import {
   Icon,
   Portal,
   Modal,
+  ProgressBar,
+  MD3Colors,
 } from "react-native-paper";
 import ExpenditureCard from "@/components/ExpenditureCard";
 import { Expenditure } from "@/(utility)/expenditure.interface";
 import DismissKeyboard from "@/components/DismissKeyboard";
 import { createNewRecord, fetchRecords } from "@/(utility)/databaseCalls";
 import { indexStyles as styles } from "./index.styles";
+import { numberWithCommas } from "@/(utility)/formatAmount";
+import { useDispatch } from "react-redux";
+import { setTotalAmountSpent } from "@/reducers/appDataReducer";
 
 export default function TabOneScreen() {
+  const dispatch = useDispatch();
   const snapPoints = useMemo(() => ["25%", "70%", "95%"], []);
   const bottomSheetRef = useRef<BottomSheet>(null);
 
@@ -39,13 +45,21 @@ export default function TabOneScreen() {
   const [loadingPage, setLoadingPage] = useState<boolean>(false);
   const [refreshing, setRefreshing] = useState<boolean>(false);
   const [creatingNewRecord, setCreatingNewRecord] = useState<boolean>(false);
+  const [totalSpent, setTotalSpent] = useState<number>(0);
 
   useEffect(() => {
     setLoadingPage(true);
     fetchRecords()
       .then((res) => {
         console.log(res);
-        setExpenditures(res as unknown as Expenditure[]);
+        const result = res as unknown as Expenditure[];
+        setExpenditures(result);
+        let totalAmount = 0;
+        result.map((item) => {
+          totalAmount = item.amount + totalAmount;
+        });
+        setTotalSpent(totalAmount);
+        dispatch(setTotalAmountSpent(totalAmount));
         setLoadingPage(false);
       })
       .catch((err) => {
@@ -53,6 +67,21 @@ export default function TabOneScreen() {
         setLoadingPage(false);
       });
   }, []);
+
+  useEffect(() => {
+    if (expenditures.length) {
+      const currentExpenditures = [...expenditures];
+      let totalAmount = 0;
+      currentExpenditures.map((item) => {
+        totalAmount = item.amount + totalAmount;
+      });
+      setTotalSpent(totalAmount);
+      dispatch(setTotalAmountSpent(totalAmount));
+    } else {
+      setTotalSpent(0);
+      dispatch(setTotalAmountSpent(0));
+    }
+  }, [expenditures]);
 
   useFocusEffect(
     useCallback(() => {
@@ -154,9 +183,16 @@ export default function TabOneScreen() {
             />
             <View>
               <View style={styles.newExpenditure}>
-                <Button mode="contained" onPress={() => snapToIndex(2)}>
+                <Button
+                  mode="contained"
+                  onPress={() => snapToIndex(2)}
+                  style={{ flex: 1, marginRight: 10 }}
+                >
                   <Icon source="plus" color={MD2Colors.white} size={20} />
                 </Button>
+                <View style={{ marginTop: 10 }}>
+                  <Text> {numberWithCommas(totalSpent)} din</Text>
+                </View>
               </View>
             </View>
 

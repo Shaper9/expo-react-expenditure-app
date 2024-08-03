@@ -1,27 +1,35 @@
-import { createSlice } from '@reduxjs/toolkit'
-import type { PayloadAction } from '@reduxjs/toolkit'
+import { createSlice } from "@reduxjs/toolkit";
+import type { PayloadAction } from "@reduxjs/toolkit";
 
-interface AppDataState {
-  value: number
+export interface AppDataState {
+  value: number;
+  totalAmountSpent: number;
 }
 
-const initialState = { value: 0 } satisfies AppDataState as AppDataState
+const initialState = {
+  value: 0,
+  totalAmountSpent: 0,
+} satisfies AppDataState as AppDataState;
 
 const appDataSlice = createSlice({
-  name: 'appData',
+  name: "appData",
   initialState,
   reducers: {
+    setTotalAmountSpent(state, action: PayloadAction<number>) {
+      state.totalAmountSpent = action.payload;
+    },
     increment(state) {
-      state.value++
+      state.value++;
     },
     decrement(state) {
-      state.value--
+      state.value--;
     },
     incrementByAmount(state, action: PayloadAction<number>) {
-      state.value += action.payload
+      state.value += action.payload;
     },
   },
-})
+});
 
-export const { increment, decrement, incrementByAmount } = appDataSlice.actions
-export default appDataSlice.reducer
+export const { increment, decrement, incrementByAmount, setTotalAmountSpent } =
+  appDataSlice.actions;
+export default appDataSlice.reducer;
