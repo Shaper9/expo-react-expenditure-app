@@ -5,12 +5,14 @@ export interface AppDataState {
   value: number;
   totalAmountSpent: number;
   monthlyIncome: number;
+  resetListEmitter: boolean;
 }
 
 const initialState = {
   value: 0,
   totalAmountSpent: 0,
   monthlyIncome: 0,
+  resetListEmitter: false,
 } satisfies AppDataState as AppDataState;
 
 const appDataSlice = createSlice({
@@ -22,6 +24,9 @@ const appDataSlice = createSlice({
     },
     setMonthlyIncome(state, action: PayloadAction<number>) {
       state.monthlyIncome = action.payload;
+    },
+    setResetEmitter(state) {
+      state.resetListEmitter = !state.resetListEmitter;
     },
     increment(state) {
       state.value++;
@@ -41,5 +46,6 @@ export const {
   incrementByAmount,
   setTotalAmountSpent,
   setMonthlyIncome,
+  setResetEmitter,
 } = appDataSlice.actions;
 export default appDataSlice.reducer;

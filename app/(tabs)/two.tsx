@@ -15,24 +15,32 @@ export default function TabTwoScreen() {
   const [percentageSpent, setPercentageSpent] = useState<number>(0.7);
   const calculatePercentage = (spent: number, salary: number): number => {
     if (salary === 0) return 0;
-    console.log(spent / salary);
-
     return spent / salary;
   };
   useEffect(() => {
-    setPercentageSpent(
-      calculatePercentage(totalAmountSpent, monthlyIncomeFromState)
-    );
-  });
+    if (monthlyIncomeFromState) {
+      setPercentageSpent(
+        calculatePercentage(totalAmountSpent, monthlyIncomeFromState)
+      );
+    }
+  }, [monthlyIncomeFromState]);
 
   return (
     <View style={styles.container}>
-      <Text>Percentage spent this month</Text>
-      <ProgressBar
-        style={styles.progressBar}
-        progress={percentageSpent}
-        color={percentageSpent > 0.7 ? MD3Colors.error50 : MD2Colors.green300}
-      />
+      {monthlyIncomeFromState > 0 ? (
+        <>
+          <Text>Percentage spent this month</Text>
+          <ProgressBar
+            style={styles.progressBar}
+            progress={percentageSpent}
+            color={
+              percentageSpent > 0.7 ? MD3Colors.error50 : MD2Colors.green300
+            }
+          />
+        </>
+      ) : (
+        <Text>Please go to settings and fill up your monthly income</Text>
+      )}
       <View>
         <Text>{numberWithCommas(monthlyIncomeFromState)} din</Text>
         <Text>{numberWithCommas(totalAmountSpent)} din</Text>

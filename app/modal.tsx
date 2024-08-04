@@ -9,8 +9,9 @@ import {
 } from "react-native-gesture-handler";
 import { useDispatch, useSelector } from "react-redux";
 import { useRef, useState } from "react";
-import { setMonthlyIncome } from "@/reducers/appDataReducer";
+import { setMonthlyIncome, setResetEmitter } from "@/reducers/appDataReducer";
 import { numberWithCommas } from "@/(utility)/formatAmount";
+import { deleteAllRecordsFromCollection } from "@/(utility)/databaseCalls";
 
 export default function ModalScreen() {
   const inputRef = useRef<any>();
@@ -18,6 +19,8 @@ export default function ModalScreen() {
   const [isSet, setIsSet] = useState<boolean>(false);
   const [setNewValue, setSetNewValue] = useState<boolean>(false);
   const [showMonthlyAmount, setShowMonthlyAmount] = useState<boolean>(false);
+
+  const [loading, setLoading] = useState<boolean>(false);
 
   const monthlyIncomeFromState = useSelector(
     (state: any) => state.appData.monthlyIncome
@@ -34,6 +37,13 @@ export default function ModalScreen() {
       setIsSet(false);
       setSetNewValue(true);
     }, 5000);
+  };
+
+  const deleteWholeCollection = async () => {
+    setLoading(true);
+    await deleteAllRecordsFromCollection();
+    dispatch(setResetEmitter());
+    setLoading(false);
   };
 
   return (
@@ -91,7 +101,6 @@ export default function ModalScreen() {
             mode="contained"
             onPress={saveMonthlyIncome}
             style={{ marginTop: 10 }}
-            // loading={creatingNewRecord}
             disabled={isSet}
           >
             {setNewValue
@@ -101,6 +110,14 @@ export default function ModalScreen() {
               : "Set amount"}
           </Button>
         </View>
+        <Button
+          mode="contained"
+          onPress={deleteWholeCollection}
+          style={{ marginTop: 200, backgroundColor: "red" }}
+          loading={loading}
+        >
+          Reset expenditure list
+        </Button>
         {/* Use a light status bar on iOS to account for the black space above the modal */}
         <StatusBar style={Platform.OS === "ios" ? "light" : "auto"} />
       </View>

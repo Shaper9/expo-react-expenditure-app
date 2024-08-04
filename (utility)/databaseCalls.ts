@@ -22,6 +22,19 @@ export const fetchRecords = async () => {
     .getFullList({ sort: "-created" });
 };
 
+export const deleteAllRecordsFromCollection = async () => {
+  try {
+    const records = await client.collection("expenditures").getFullList();
+
+    // Delete each record
+    for (const record of records) {
+      await client.collection("expenditures").delete(record.id);
+    }
+  } catch (err) {
+    console.log(err);
+  }
+};
+
 // const fetchRe = async () => {
 //   const data = await fetch(
 //     "https://react-native-todo-m.pockethost.io/api/collections/todos/records"

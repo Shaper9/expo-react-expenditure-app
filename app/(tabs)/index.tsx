@@ -22,11 +22,14 @@ import DismissKeyboard from "@/components/DismissKeyboard";
 import { createNewRecord, fetchRecords } from "@/(utility)/databaseCalls";
 import { indexStyles as styles } from "./index.styles";
 import { numberWithCommas } from "@/(utility)/formatAmount";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { setTotalAmountSpent } from "@/reducers/appDataReducer";
 
 export default function TabOneScreen() {
   const dispatch = useDispatch();
+  const resetListEmitter = useSelector(
+    (state: any) => state.appData.resetListEmitter
+  );
   const snapPoints = useMemo(() => ["25%", "70%", "95%"], []);
   const bottomSheetRef = useRef<BottomSheet>(null);
 
@@ -43,17 +46,18 @@ export default function TabOneScreen() {
   const [creatingNewRecord, setCreatingNewRecord] = useState<boolean>(false);
   const [totalSpent, setTotalSpent] = useState<number>(0);
 
-  useEffect(() => {
+  const fetchList = () => {
     setLoadingPage(true);
     fetchRecords()
       .then((res) => {
-        console.log(res);
         const result = res as unknown as Expenditure[];
         setExpenditures(result);
         let totalAmount = 0;
-        result.map((item) => {
-          totalAmount = item.amount + totalAmount;
-        });
+        if (result.length) {
+          result.map((item) => {
+            totalAmount = item.amount + totalAmount;
+          });
+        }
         setTotalSpent(totalAmount);
         dispatch(setTotalAmountSpent(totalAmount));
         setLoadingPage(false);
@@ -62,6 +66,13 @@ export default function TabOneScreen() {
         console.log(err);
         setLoadingPage(false);
       });
+  };
+
+  useEffect(() => {
+    fetchList();
+  }, [resetListEmitter]);
+  useEffect(() => {
+    fetchList();
   }, []);
 
   useEffect(() => {
@@ -114,7 +125,6 @@ export default function TabOneScreen() {
   );
 
   const saveForm = () => {
-    console.log(nameInput, amountInput, commentInput);
     setCreatingNewRecord(true);
 
     createNewRecord(nameInput, amountInput, commentInput || "")
@@ -140,7 +150,6 @@ export default function TabOneScreen() {
   };
 
   const refreshHandler = () => {
-    console.log("refresh");
     setRefreshing(true);
     fetchRecords()
       .then((res) => {
