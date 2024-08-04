@@ -4,7 +4,7 @@ import BottomSheet, {
 } from "@gorhom/bottom-sheet";
 import { useFocusEffect } from "@react-navigation/native";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { View, Text, FlatList, Keyboard } from "react-native";
+import { View, Text, FlatList, Keyboard, useColorScheme } from "react-native";
 import {
   GestureHandlerRootView,
   RefreshControl,
@@ -27,6 +27,7 @@ import { setTotalAmountSpent } from "@/reducers/appDataReducer";
 
 export default function TabOneScreen() {
   const dispatch = useDispatch();
+  const colorScheme = useColorScheme();
   const resetListEmitter = useSelector(
     (state: any) => state.appData.resetListEmitter
   );
@@ -177,7 +178,11 @@ export default function TabOneScreen() {
               data={expenditures}
               keyExtractor={(item) => item.id}
               renderItem={({ item }) => (
-                <ExpenditureCard item={item} removeRecord={onRemoveRecord} />
+                <ExpenditureCard
+                  item={item}
+                  removeRecord={onRemoveRecord}
+                  colorSchema={colorScheme}
+                />
               )}
               refreshControl={
                 <RefreshControl
@@ -196,7 +201,14 @@ export default function TabOneScreen() {
                   <Icon source="plus" color={MD2Colors.white} size={20} />
                 </Button>
                 <View style={{ marginTop: 10 }}>
-                  <Text> {numberWithCommas(totalSpent)} din</Text>
+                  <Text
+                    style={{
+                      color: colorScheme === "dark" ? "white" : "black",
+                    }}
+                  >
+                    {" "}
+                    {numberWithCommas(totalSpent)} din
+                  </Text>
                 </View>
               </View>
             </View>

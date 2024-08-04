@@ -1,6 +1,12 @@
 import { numberWithCommas } from "@/(utility)/formatAmount";
 import { Card, Text as PaperText, Portal } from "react-native-paper";
-import { Animated, Easing, StyleSheet, View } from "react-native";
+import {
+  Animated,
+  ColorSchemeName,
+  Easing,
+  StyleSheet,
+  View,
+} from "react-native";
 import { Expenditure } from "@/(utility)/expenditure.interface";
 import { deleteRecord } from "@/(utility)/databaseCalls";
 import { ActivityIndicator, MD2Colors } from "react-native-paper";
@@ -9,9 +15,11 @@ import { useState } from "react";
 export default function ExpenditureCard({
   item,
   removeRecord,
+  colorSchema,
 }: {
   item: Expenditure;
   removeRecord: (s: string) => void;
+  colorSchema: ColorSchemeName;
 }) {
   const fadeOutAnimationDuration = 1500;
   const [isDeleting, setIsDeleting] = useState<boolean>(false);
@@ -68,7 +76,11 @@ export default function ExpenditureCard({
           }}
         >
           <Card
-            style={styles.expenditure}
+            style={
+              colorSchema === "light"
+                ? styles.expenditure
+                : styles.expenditureDark
+            }
             mode="elevated"
             onLongPress={() => handleExpenditureDelete(item)}
             onPressOut={onPressOut}
@@ -89,6 +101,13 @@ export default function ExpenditureCard({
 const styles = StyleSheet.create({
   expenditure: {
     backgroundColor: "#CBC3E3",
+    paddingHorizontal: 20,
+    paddingVertical: 5,
+    marginBottom: 20,
+    width: 350,
+  },
+  expenditureDark: {
+    backgroundColor: "#4B0082",
     paddingHorizontal: 20,
     paddingVertical: 5,
     marginBottom: 20,
