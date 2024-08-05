@@ -41,10 +41,6 @@ export default function TabTwoScreen() {
       ) : (
         <Text>Please go to settings and fill up your monthly income</Text>
       )}
-      <View>
-        <Text>{numberWithCommas(monthlyIncomeFromState)} din</Text>
-        <Text>{numberWithCommas(totalAmountSpent)} din</Text>
-      </View>
     </View>
   );
 }
