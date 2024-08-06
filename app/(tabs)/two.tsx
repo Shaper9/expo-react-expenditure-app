@@ -2,7 +2,6 @@ import { StyleSheet } from "react-native";
 import { Text, View } from "@/components/Themed";
 import { MD2Colors, MD3Colors, ProgressBar } from "react-native-paper";
 import { useSelector } from "react-redux";
-import { numberWithCommas } from "@/(utility)/formatAmount";
 import { useEffect, useState } from "react";
 
 export default function TabTwoScreen() {
